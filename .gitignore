@@ -1,3 +1,4 @@
 .vs*
 *.ipynb*
 __pycache__
+*.pyproj
