@@ -16,7 +16,7 @@ class Server(Architecture):
         Initializes a new instance of the Server.
         """
         print('Initializing server....')
-        Architecture.__init__(self, seed=server_seed, block_size=server_block_size)
+        super().__init__(seed=server_seed, block_size=server_block_size)
         self.input_var = C.input_variable(self.block_size, name='Input Sample')
         self.output_var = C.input_variable(self.block_size, name='Output Sample')
 
@@ -63,17 +63,18 @@ class Server(Architecture):
         """
         self.__prepare_data__(message)
         encryted_data = []
-        loss = C.cross_entropy_with_softmax(self.model, self.output_var)
-        label_error = C.classification_error(self.model, self.output_var)
+
+        # Prepare the fake learning
+        loss = C.losses.squared_error(self.model, self.output_var)
         learning_rate = 0.01
-        lr_schedule = C.learning_parameter_schedule(learning_rate)
-        learner = C.sgd(self.model.parameters, lr_schedule)
-        trainer = C.Trainer(self.model, [loss, label_error], [learner])
+        learner = C.learners.sgd(self.model.parameters, learning_rate)
+        trainer = C.train.Trainer(self.model, [loss], [learner])
         input_map = {self.input_var: self.input_data, self.output_var: self.output_data}
 
         batch_size = 1
         num_batches = (self.input_data.shape[0] * self.input_data.shape[1]) / batch_size
         
+        # Make passes through the network
         for i in range(int(num_batches)):
             trainer.train_minibatch(input_map)
             encryted_data.append(
