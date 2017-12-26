@@ -17,6 +17,10 @@ class Server(Architecture):
         """
         print('Initializing server....')
         Architecture.__init__(self, seed=server_seed, block_size=server_block_size)
+        self.input_var = C.input_variable(self.block_size, name='Input Sample')
+        self.output_var = C.input_variable(self.block_size, name='Output Sample')
+
+        self.model = self.create_model(self.input_var)
 
     def encode(self, message):
         """
@@ -33,7 +37,7 @@ class Server(Architecture):
         Splits the data into blocks, encodes the data.
         """
         # Break the message down to blocks
-        def __break_message__(message, data=None):
+        def __break_message__(message, data=[]):
             data.append(message[:self.block_size])
             if len(message) < self.block_size:
                 last_length = self.block_size - len(data[-1])
@@ -45,9 +49,11 @@ class Server(Architecture):
             self.broken_data = __break_message__(message)
             # Now this broken data consists of elements that are broken into block size.
         self.input_data = [self.encode(block) for block in self.broken_data]
+        self.output_data = [self.encode(item[::-1]) for item in self.broken_data]
         # convert this to a numpy array.
         # This is the data that we will be feeding the network
         self.input_data = np.asarray(self.input_data)
+        self.output_data = np.asarray(self.output_data)
 
     def encrypt(self, message):
         """
@@ -56,13 +62,21 @@ class Server(Architecture):
             message: (string) the actual message to be encrypted
         """
         self.__prepare_data__(message)
-        input_var = C.input_variable(self.input_data.shape[2], name='Input Sample')
-        output_var = C.input_variable(self.input_data.shape[2], name='Output Sample')
-
-        self.model = self.create_model(input_var)
-        loss = C.cross_entropy_with_softmax(self.model, output_var)
-        label_error = C.classification_error(self.model, output_var)
+        encryted_data = []
+        loss = C.cross_entropy_with_softmax(self.model, self.output_var)
+        label_error = C.classification_error(self.model, self.output_var)
         learning_rate = 0.01
         lr_schedule = C.learning_parameter_schedule(learning_rate)
         learner = C.sgd(self.model.parameters, lr_schedule)
         trainer = C.Trainer(self.model, [loss, label_error], [learner])
+        input_map = {self.input_var: self.input_data, self.output_var: self.output_data}
+
+        batch_size = 1
+        num_batches = (self.input_data.shape[0] * self.input_data.shape[1]) / batch_size
+        
+        for i in range(int(num_batches)):
+            trainer.train_minibatch(input_map)
+            encryted_data.append(
+                self.model.eval({self.model.arguments[0]: self.input_data[i]})
+                )
+        return encryted_data
