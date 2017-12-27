@@ -45,7 +45,7 @@ class Architecture(object):
         The architecture of the neural network.
         Here we create an ANN with 2 hidden layers and an output layer
         """
-        with C.layers.default_options(init=C.glorot_uniform(seed=self.seed), activation=C.tanh):
+        with C.layers.default_options(init=C.glorot_uniform(seed=self.seed)):
             layer = C.layers.Dense(self.block_size, name='Hidden Layer 1')(features)
             layer = C.layers.Dense(self.block_size, name='Hidden Layer 2')(layer)
             return C.layers.Dense(self.block_size, activation=None, name='Output')(layer)

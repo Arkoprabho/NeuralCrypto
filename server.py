@@ -45,9 +45,8 @@ class Server(Architecture):
                 return data
             return __break_message__(message[self.block_size:], data)
 
-        if len(message) > self.block_size:
-            self.broken_data = __break_message__(message)
-            # Now this broken data consists of elements that are broken into block size.
+        self.broken_data = __break_message__(message)
+        # Now this broken data consists of elements that are broken into block size.
         self.input_data = [self.encode(block) for block in self.broken_data]
         self.output_data = [self.encode(item[::-1]) for item in self.broken_data]
         # convert this to a numpy array.
@@ -64,6 +63,14 @@ class Server(Architecture):
         self.__prepare_data__(message)
         encryted_data = []
 
+        batch_size = 1
+        num_batches = (self.input_data.shape[0] * self.input_data.shape[1]) / batch_size
+
+        # Evaluate the encrypted data.
+        for i in range(int(num_batches)):
+            encryted_data.append(
+                self.model.eval({self.model.arguments[0]: self.input_data[i]})
+                )
         # Prepare the fake learning
         loss = C.losses.squared_error(self.model, self.output_var)
         learning_rate = 0.01
@@ -71,13 +78,8 @@ class Server(Architecture):
         trainer = C.train.Trainer(self.model, [loss], [learner])
         input_map = {self.input_var: self.input_data, self.output_var: self.output_data}
 
-        batch_size = 1
-        num_batches = (self.input_data.shape[0] * self.input_data.shape[1]) / batch_size
         
-        # Make passes through the network
+        # Make passes through the network and update the weights
         for i in range(int(num_batches)):
             trainer.train_minibatch(input_map)
-            encryted_data.append(
-                self.model.eval({self.model.arguments[0]: self.input_data[i]})
-                )
-        return encryted_data
+        return np.asarray(encryted_data)
