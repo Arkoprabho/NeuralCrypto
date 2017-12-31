@@ -77,7 +77,6 @@ class Client(Architecture):
         trainer = C.train.Trainer(self.model, [loss], [learner])
         input_map = {self.input_var: input_data, self.output_var: output_data}
 
-        
         # Make passes through the network and update the weights
         for i in range(int(num_batches)):
             trainer.train_minibatch(input_map)

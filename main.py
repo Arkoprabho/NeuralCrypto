@@ -13,6 +13,7 @@ if __name__ == '__main__':
 
     data = 'Hi there my name is Arko and I am here to study computer science and engineering'
 
+    print('------------------------Phase 1 -------------------------')
     print('Encrypting!')
     encrypted_data = ser.encrypt(data)
     print(encrypted_data)
@@ -30,7 +31,7 @@ if __name__ == '__main__':
     decrypted_data = cli.decrypt(encrypted_data)
     print(decrypted_data)
 
-    print('------------------------Phase 2 -------------------------')
+    print('------------------------Phase 3 -------------------------')
     data = 'This is another set of data that needs to be encrypted and sent to the client'
     print('Encrypting!')
     encrypted_data = ser.encrypt(data)
