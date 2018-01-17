@@ -4,6 +4,6 @@ Current encryption algorithms (even public key crypto algorithms) face a problem
 Thus our architecture not only makes it a 2 step process to get the key, but also makes it extremely hard to find out the key used.
 
 ## Libraries used
-We will primarily be working with [keras](https://keras.io/) with a backend of [TensorFlow](https://www.tensorflow.org/) or [CNTK](https://www.microsoft.com/en-us/cognitive-toolkit/) depending on the architecture. It has been seen that recurrent neural networks are much faster in CNTK. In case the architecture used is a type of recurrent neural network, then it is advised to use a CNTK backend instead of a tensorflow one.<br>
+We will primarily be working with [CNTK](https://www.microsoft.com/en-us/cognitive-toolkit/). Although the library used here is for demonsration purpose only. The implementation can be done in any library like [Keras](https://keras.io/) or [TensorFlow](https://www.tensorflow.org/)<br>
 
 It is recommended to use [Anaconda](https://www.anaconda.com/download/) python as the default python environment as it solves a lot of dependency problems associated with the network.
